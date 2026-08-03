@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAY ALLCUBE</title>
+<meta name="description" content="플레이 올큐브 — 예약, 진단, 타이머, 콘테스트를 한 곳에서">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0B1834">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ALLCUBE">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --navy:#0B1834;
+    --navy-deep:#060C1C;
+    --blue:#2F6BFF;
+    --yellow:#FFC844;
+    --paper:#F5F5F5;
+    --slate:#132140;
+    --slate-2:#182A4F;
+    --mist:#8FA3C8;
+    --radius:18px;
+    --gap:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(120% 70% at 50% -10%, #14275A 0%, var(--navy) 55%, var(--navy-deep) 100%);
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    min-height:100dvh;
+    padding-bottom:env(safe-area-inset-bottom);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{
+    max-width:520px;
+    margin:0 auto;
+    padding:28px 20px 40px;
+  }
+
+  /* ---- Header ---- */
+  header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .mark{
+    width:38px;height:38px;
+    border-radius:9px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr 1fr;
+    gap:3px;
+    padding:3px;
+    background:var(--navy-deep);
+    flex-shrink:0;
+    animation:markSpin 14s linear infinite;
+  }
+  @media (prefers-reduced-motion:reduce){ .mark{animation:none;} }
+  @keyframes markSpin{
+    0%,92%{transform:rotate(0deg);}
+    96%{transform:rotate(180deg);}
+    100%{transform:rotate(180deg);}
+  }
+  .mark span{border-radius:3px;}
+  .mark span:nth-child(1),.mark span:nth-child(4){background:var(--yellow);}
+  .mark span:nth-child(2),.mark span:nth-child(3){background:var(--blue);}
+  header h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:19px;
+    font-weight:700;
+    letter-spacing:0.2px;
+    margin:0;
+    line-height:1.1;
+  }
+  header p{
+    margin:2px 0 0;
+    font-size:12px;
+    color:var(--mist);
+  }
+
+  /* ---- Hero ---- */
+  .hero{
+    margin-bottom:24px;
+  }
+  .hero .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+    color:var(--yellow);
+    text-transform:uppercase;
+    margin-bottom:8px;
+  }
+  .hero h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:26px;
+    line-height:1.28;
+    font-weight:600;
+    margin:0;
+    color:var(--paper);
+  }
+  .hero h2 em{
+    color:var(--blue);
+    font-style:normal;
+  }
+
+  /* ---- Cube face grid (signature element) ---- */
+  .face-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--mist);
+    margin:26px 2px 10px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .cube-face{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:var(--gap);
+    background:var(--navy-deep);
+    padding:var(--gap);
+    border-radius:22px;
+  }
+  .sticker{
+    aspect-ratio:1/1;
+    border-radius:var(--radius);
+    background:var(--slate);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:12px;
+    text-decoration:none;
+    color:var(--paper);
+    position:relative;
+    overflow:hidden;
+    transition:transform .15s ease, background .15s ease;
+    border:1px solid rgba(255,255,255,0.04);
+  }
+  .sticker:active{ transform:scale(0.95); }
+  .sticker .icon{
+    font-size:20px;
+    line-height:1;
+  }
+  .sticker .label{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    line-height:1.25;
+  }
+  .sticker .sub{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    color:var(--mist);
+    margin-top:2px;
+    display:block;
+  }
+
+  /* primary cell: booking */
+  .sticker.primary{
+    background:var(--yellow);
+    color:var(--navy-deep);
+  }
+  .sticker.primary .sub{ color:rgba(11,24,52,0.6); }
+  .sticker.primary .icon{ color:var(--navy-deep); }
+
+  /* accent cell: contest */
+  .sticker.accent{
+    background:var(--blue);
+    color:var(--paper);
+  }
+  .sticker.accent .sub{ color:rgba(245,245,245,0.75); }
+
+  .sticker:not(.primary):not(.accent):hover{ background:var(--slate-2); }
+
+  /* wide contact strip */
+  .contact{
+    margin-top:var(--gap);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:16px 16px;
+    border-radius:var(--radius);
+    background:var(--navy-deep);
+    border:1px dashed rgba(143,163,200,0.35);
+    text-decoration:none;
+    color:var(--paper);
+  }
+  .contact .txt{ font-size:13px; }
+  .contact .txt b{ display:block; font-family:'Space Grotesk',sans-serif; font-size:14px; margin-bottom:2px; }
+  .contact .go{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--yellow);
+    white-space:nowrap;
+  }
+
+  footer{
+    margin-top:30px;
+    text-align:center;
+    font-size:11px;
+    color:var(--mist);
+    line-height:1.7;
+  }
+  footer a{ color:var(--mist); }
+
+  .install-toast{
+    position:fixed;
+    left:16px;right:16px;bottom:16px;
+    background:var(--slate-2);
+    border:1px solid rgba(255,200,68,0.35);
+    border-radius:16px;
+    padding:14px 16px;
+    display:none;
+    align-items:center;
+    gap:12px;
+    max-width:488px;
+    margin:0 auto;
+    box-shadow:0 12px 30px rgba(0,0,0,0.35);
+  }
+  .install-toast.show{ display:flex; }
+  .install-toast p{ margin:0; font-size:12.5px; flex:1; color:var(--paper); line-height:1.5; }
+  .install-toast button{
+    background:var(--yellow);
+    color:var(--navy-deep);
+    border:none;
+    border-radius:10px;
+    padding:9px 14px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    white-space:nowrap;
+  }
+  .install-toast .dismiss{
+    background:transparent;
+    color:var(--mist);
+    font-size:16px;
+    padding:4px 6px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="mark"><span></span><span></span><span></span><span></span></div>
+      <div>
+        <h1>PLAY ALLCUBE</h1>
+        <p>플레이 올큐브 허브</p>
+      </div>
+    </header>
+
+    <div class="hero">
+      <div class="eyebrow">한 면에, 전부</div>
+      <h2>큐브는 순간의 놀이가 아니라,<br><em>평생의 취미</em>입니다.</h2>
+    </div>
+
+    <div class="face-label"><span>U 면 · 9개 스티커</span><span>탭해서 이동</span></div>
+
+    <nav class="cube-face">
+      <a class="sticker primary" href="https://keen-kataifi-af449f.netlify.app" target="_blank" rel="noopener">
+        <span class="icon">📅</span>
+        <span><span class="label">예약하기</span><span class="sub">원데이클래스</span></span>
+      </a>
+
+      <a class="sticker" href="https://playallcube.com/17" target="_blank" rel="noopener">
+        <span class="icon">🎓</span>
+        <span><span class="label">교육 프로그램</span><span class="sub">전체 강의</span></span>
+      </a>
+
+      <a class="sticker" href="https://playallcube.com" data-target="diagnosis" target="_blank" rel="noopener">
+        <span class="icon">🧭</span>
+        <span><span class="label">진단 센터</span><span class="sub">실력 체크</span></span>
+      </a>
+
+      <a class="sticker" href="https://unrivaled-sorbet-6dbee1.netlify.app" target="_blank" rel="noopener">
+        <span class="icon">⏱️</span>
+        <span><span class="label">큐브 타이머</span><span class="sub">7종 · WCA 스크램블</span></span>
+      </a>
+
+      <a class="sticker accent" href="https://chobuhong-coder.github.io/allcube-contes/" target="_blank" rel="noopener">
+        <span class="icon">🏆</span>
+        <span><span class="label">위클리 콘테스트</span><span class="sub">Ao5 · 매주 갱신</span></span>
+      </a>
+
+      <a class="sticker" href="https://serene-eclair-60bb2b.netlify.app" target="_blank" rel="noopener">
+        <span class="icon">🧩</span>
+        <span><span class="label">큐브 플레이</span><span class="sub">3D로 맞춰보기</span></span>
+      </a>
+
+      <a class="sticker" href="https://playallcube.com" data-target="feedback" target="_blank" rel="noopener">
+        <span class="icon">🎬</span>
+        <span><span class="label">피드백 갤러리</span><span class="sub">코치 첨삭</span></span>
+      </a>
+
+      <a class="sticker" href="https://allcube.shop" target="_blank" rel="noopener">
+        <span class="icon">🛒</span>
+        <span><span class="label">올큐브샵</span><span class="sub">큐브 용품</span></span>
+      </a>
+
+      <a class="sticker" href="tel:010-2544-0486">
+        <span class="icon">☎️</span>
+        <span><span class="label">문의하기</span><span class="sub">010-2544-0486</span></span>
+      </a>
+    </nav>
+
+    <a class="contact" href="https://map.kakao.com/?q=경기 구리시 안골로 3 마지아빌딩" target="_blank" rel="noopener">
+      <span class="txt"><b>오프라인 코칭 스튜디오</b>경기 구리시 안골로 3, 마지아빌딩 5층</span>
+      <span class="go">지도 열기 →</span>
+    </a>
+
+    <footer>
+      주식회사 올큐브 · PLAY ALLCUBE<br>
+      <a href="https://playallcube.com" target="_blank" rel="noopener">playallcube.com</a> · <a href="https://allcube.shop" target="_blank" rel="noopener">allcube.shop</a>
+    </footer>
+  </div>
+
+  <div class="install-toast" id="installToast">
+    <p>홈 화면에 추가하면 앱처럼 바로 열 수 있어요.</p>
+    <button id="installBtn">추가</button>
+    <button class="dismiss" id="dismissBtn">✕</button>
+  </div>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    });
+  }
+
+  let deferredPrompt;
+  const toast = document.getElementById('installToast');
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    toast.classList.add('show');
+  });
+  document.getElementById('installBtn').addEventListener('click', async () => {
+    toast.classList.remove('show');
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    }
+  });
+  document.getElementById('dismissBtn').addEventListener('click', () => {
+    toast.classList.remove('show');
+  });
+</script>
+</body>
+</html>
